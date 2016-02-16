@@ -1,6 +1,6 @@
 # coeffcorr
 Intuition for how correlations between covariates relates to 
-correlations between regression coefficients.
+correlations between regression coefficients. This arose from the recent uptick in papers making inferences based on correlations between regression coefficients (i.e., fitting the same model to replicates and correlating the obtained fits for one coeffient with another). This seems pretty questionable given the relation between coefficient covariance and covariances within the design matrix.
 
 ![correlations](https://raw.githubusercontent.com/brian-lau/ExploreStats/master/coeffcorr/figure.jpg)
 
