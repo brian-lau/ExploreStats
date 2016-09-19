@@ -14,11 +14,11 @@ for rep = 1:nrep
       %x = pearsrnd(0.9,.1,2,10,n,1);
       mu_hat(n,rep) = mean(x);
       yb(n,rep) = x(1)/mu_hat(n,rep);
-      y = .1 + 1*rand(1,1);
+      y = 10 + 1*rand(1,1);
       %y = pearsrnd(.9,.1,2,10,1,1);
       ys1(n,rep) = y/mu_hat(n,rep); % ratio of averages
       ys2(n,rep) = ys1(n,rep) - (1/n)*((y*var(x))/mean(x)^3); % simple corrrection
-      ys3(n,rep) = mean((.1 + 1*rand(1,1))./x); % average of ratios
+      ys3(n,rep) = mean(y./x); % average of ratios
    end
 end
 
