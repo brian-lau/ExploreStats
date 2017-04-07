@@ -1,27 +1,53 @@
 library(nlme)
-library(lmerTest)
+library(lmtest)
+library(sandwich)
 
 T = 200
-nSim = 100
+nSim = 200
 
 rhox = 0.99
 rhoy = 0.99
 
-bhat = vector("numeric",nSim)
 r2 = vector("numeric",nSim)
+bhatOLS = vector("numeric",nSim)
+bhatGLS = vector("numeric",nSim)
+tval = vector("numeric",nSim)
 pval = vector("numeric",nSim)
+tvalHAC = vector("numeric",nSim)
+pvalHAC = vector("numeric",nSim)
+tvalGLS = vector("numeric",nSim)
+pvalGLS = vector("numeric",nSim)
 
 for (s in 1:nSim) {
   x = arima.sim(n = T, list(ar = c(rhox)))
-  y = arima.sim(n = T, list(ar = c(rhoy)))
+  y = 0.3*x + arima.sim(n = T, list(ar = c(rhoy)))
   
+  # Standard OLS
   ols = (lm(y~x))
-  bhat[[s]] = coefficients(ols)[[2]]
   r2[[s]] = summary(ols)$r.squared
   
   sumres = summary(ols)
-  pval[[s]] = pf(sumres$fstatistic[1L], sumres$fstatistic[2L], sumres$fstatistic[3L], lower.tail = FALSE)
+  # Overall F-test
+  #pval[[s]] = pf(sumres$fstatistic[1L], sumres$fstatistic[2L], sumres$fstatistic[3L], lower.tail = FALSE)
+  # Slope
+  bhatOLS[[s]] = coefficients(ols)[[2]]
+  # Slope statistic
+  test = coeftest(ols)
+  tval[[s]] = test[2,3]
+  pval[[s]] = test[2,4]
   
+  # HAC corrected standard errors
+  test = coeftest(ols,vcov = vcovHAC)
+  #test = coeftest(ols,vcov = NeweyWest(ols,lag=T))
+  #test = coeftest(ols,vcov = NeweyWest(ols,lag=T*0.05))
+  tvalHAC[[s]] = test[2,3]
+  pvalHAC[[s]] = test[2,4]
+  
+  # Feasible generalized least squares
   fgls = gls(y~x,correlation=corAR1(form=~1))
+  test = coeftest(fgls)
+  tvalGLS[[s]] = test[2,3]
+  pvalGLS[[s]] = test[2,4]
+  bhatGLS[[s]] = coefficients(fgls)[[2]]
 }
 
