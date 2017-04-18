@@ -4,14 +4,6 @@ library(sandwich)
 
 set.seed(12345)
 
-#lagmatrix <- function(x,max.lag) embed(c(rep(NA,max.lag), x), max.lag+1)
-
-# lag <- function(x, time_var, value_var){
-#   x<- x[sort(x[[time_var]], index.return=T)$ix,]
-#   x$lag <- c(NA, embed(x[[value_var]],2)[,2])
-#   x
-# }
-
 T = 500
 nSim = 100
 
@@ -51,7 +43,7 @@ for (s in 1:nSim) {
   
   # HAC corrected standard errors
   #test = coeftest(ols,vcov = vcovHAC)
-  #test = coeftest(ols,vcov = NeweyWest(ols,lag=T))
+  # w/ lag length yielding convergent statistic (Sun 2004)
   test = coeftest(ols,vcov = NeweyWest(ols,lag=T*0.05))
   tvalHAC[[s]] = test[2,3]
   pvalHAC[[s]] = test[2,4]
