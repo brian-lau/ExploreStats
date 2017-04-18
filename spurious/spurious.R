@@ -2,8 +2,18 @@ library(nlme)
 library(lmtest)
 library(sandwich)
 
-T = 200
-nSim = 200
+set.seed(12345)
+
+#lagmatrix <- function(x,max.lag) embed(c(rep(NA,max.lag), x), max.lag+1)
+
+# lag <- function(x, time_var, value_var){
+#   x<- x[sort(x[[time_var]], index.return=T)$ix,]
+#   x$lag <- c(NA, embed(x[[value_var]],2)[,2])
+#   x
+# }
+
+T = 500
+nSim = 100
 
 rhox = 0.99
 rhoy = 0.99
@@ -11,16 +21,19 @@ rhoy = 0.99
 r2 = vector("numeric",nSim)
 bhatOLS = vector("numeric",nSim)
 bhatGLS = vector("numeric",nSim)
+bhatLAG = vector("numeric",nSim)
 tval = vector("numeric",nSim)
 pval = vector("numeric",nSim)
 tvalHAC = vector("numeric",nSim)
 pvalHAC = vector("numeric",nSim)
 tvalGLS = vector("numeric",nSim)
 pvalGLS = vector("numeric",nSim)
+tvalLAG = vector("numeric",nSim)
+pvalLAG = vector("numeric",nSim)
 
 for (s in 1:nSim) {
   x = arima.sim(n = T, list(ar = c(rhox)))
-  y = 0.3*x + arima.sim(n = T, list(ar = c(rhoy)))
+  y = 0.0*x + arima.sim(n = T, list(ar = c(rhoy)))
   
   # Standard OLS
   ols = (lm(y~x))
@@ -37,9 +50,9 @@ for (s in 1:nSim) {
   pval[[s]] = test[2,4]
   
   # HAC corrected standard errors
-  test = coeftest(ols,vcov = vcovHAC)
+  #test = coeftest(ols,vcov = vcovHAC)
   #test = coeftest(ols,vcov = NeweyWest(ols,lag=T))
-  #test = coeftest(ols,vcov = NeweyWest(ols,lag=T*0.05))
+  test = coeftest(ols,vcov = NeweyWest(ols,lag=T*0.05))
   tvalHAC[[s]] = test[2,3]
   pvalHAC[[s]] = test[2,4]
   
@@ -49,5 +62,16 @@ for (s in 1:nSim) {
   tvalGLS[[s]] = test[2,3]
   pvalGLS[[s]] = test[2,4]
   bhatGLS[[s]] = coefficients(fgls)[[2]]
+  
+  # Lagged variables (Hamilton pg. 562)
+  lagx <- c(NA, embed(x,2)[,2])
+  lagy <- c(NA, embed(y,2)[,2])
+  ols = lm(y~x + lagx + lagy)
+  # Slope
+  bhatLAG[[s]] = coefficients(ols)[[2]]
+  # Slope statistic
+  test = coeftest(ols)
+  tvalLAG[[s]] = test[2,3]
+  pvalLAG[[s]] = test[2,4]
 }
 
