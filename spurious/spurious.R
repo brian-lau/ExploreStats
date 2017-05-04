@@ -4,7 +4,7 @@ library(sandwich)
 
 set.seed(12345)
 
-T = 500
+T = 200
 nSim = 100
 
 rhox = 0.99
